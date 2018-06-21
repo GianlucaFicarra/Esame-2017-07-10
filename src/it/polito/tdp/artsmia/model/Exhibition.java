@@ -1,6 +1,7 @@
 package it.polito.tdp.artsmia.model;
 
-public class Exhibition {
+public class Exhibition { //javebean
+	//sta nel DB con una relazione molti a molti(lista di oggetti di altro tipo)
 
 	int id;
 	String department;

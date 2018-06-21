@@ -1,0 +1,42 @@
+SPIEGAZIONE:
+
+database con info su opere e mostre MIA, ho oggetti d'arte con id e info, creati da artisti
+ho relazione autorship per gestire una relazionemolti a molti, artista può fare più oggetti,
+oggetti posso essere fatti da più artist stessa cosa oggetto esposto in più mostre e mostra espone più oggetti.
+
+
+PUNTO 1
+a. Permettere all’utente di selezionare il bottone “Analizza
+oggetti”.
+
+b. Alla pressione del bottone, creare un grafo che
+rappresenti gli oggetti e la loro copresenza nelle varie
+mostre. In particolare:
+
+il grafo dovrà essere pesato,
+semplice e non orientato. I vertici rappresentano tutti
+gli oggetti presenti nel database (tabella objects). Un
+arco collega due oggetti se sono stati esposti
+contemporaneamente nella stessa exhibition ed il peso
+dell’arco rappresenta il numero di exhibition in cui tali oggetti sono stati contemporaneamente esposti.
+
+c. Permettere all’utente di inserire, in una casella di testo, il numero identificativo di un oggetto (object_id),
+verificando che sia corretto.
+
+d. Premendo il pulsante “Componente Connessa”, determinare la componente connessa del grafo che contiene
+il vertice selezionato precedentemente e stampare il numero di vertici che la compongono.
+
+
+PUNTO 2
+a. Permettere all’utente di inserire, in una seconda casella di testo, un numero intero, detto LUN, compreso tra
+2 e la dimensione della componente connessa relativa al vertice selezionato al punto 1c.
+
+b. Alla pressione del bottone “Cerca oggetti”, il programma dovrà cercare il cammino di peso massimo, avente
+lunghezza1 pari a LUN, il cui vertice iniziale coincida con il vertice selezionato nel punto 1.c., che comprenda
+esclusivamente vertici che abbiano tutti la stessa classification.
+
+c. Al termine della ricerca, il programma dovrà stampare il cammino, indicando gli oggetti incontrati (ordinati
+per object_name ) ed il peso totale del cammino trovato.
+
+
+OSS libreria c3p0 cura parte connection pooling, usata da dbconnect

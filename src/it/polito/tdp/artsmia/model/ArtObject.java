@@ -1,7 +1,8 @@
 package it.polito.tdp.artsmia.model;
 
-public class ArtObject {
-
+public class ArtObject implements Comparable<ArtObject> {  //classe javabean
+	//sta nel DB con una relazione molti a molti(lista di oggetti di altro tipo)
+	
 	private int id;
 	private String classification;
 	private String continent;
@@ -169,6 +170,8 @@ public class ArtObject {
 	public void setTitle(String title) {
 		this.title = title;
 	}
+	
+	//solo id serve ad identificare oggetto stesso, che è la chiave primaria
 
 	@Override
 	public int hashCode() {
@@ -195,5 +198,10 @@ public class ArtObject {
 	@Override
 	public String toString() {
 		return "ArtObject [objectId=" + id + ", title=" + title + "]";
+	}
+
+	@Override
+	public int compareTo(ArtObject other) {
+		return this.getName().compareTo(other.getName());
 	}
 }

@@ -1,0 +1,31 @@
+--> ho scelto oggetto e calcolato componente connesse, nella casella lun
+scelgo num tra 2 e la dim max della componente connessa, dopo trovo:
+         
+Obiettivo: trovare un cammino di LUN vertici, partendo dal vertice 'start'
+- che deve essere un cammino: vertici a due a due adiacenti
+- per cui ho che:
+  -peso massimo
+  - ogni vertice del cammino deve avere la stessa 'classification' di 'start'
+
+Soluizione: Lista di ArtObject avente:
+- primo elemento è 'start'
+- elementi successivi sono adiacenti
+- tutti elementi hanno stessa classification
+- l'ordine degli elementi è rilevante
+
+Soluzione totale: soluzione di lunghezza LUN
+
+Livello ricorsione = lunghezza della sequenza
+
+Passo della ricorsione = aggiungere un nuovo vertice in coda alla sequenza, che sia
+- adiacente all'ultimo vertice della sequenza parziale
+- purché abbia la giusta "classification" (quella di start)
+- purché non faccia ancora parte della soluzione parziale
+
+Caso iniziale: lista che contiene [start]
+
+Caso terminale = soluzione ha lunghezza LUN
+- calcolare peso
+- se max, memorizzare soluzione
+- continuo a cercare con lunghezze maggiori, ma non proseguo in profondità aggiungendo elementi('return' semplice)
+
