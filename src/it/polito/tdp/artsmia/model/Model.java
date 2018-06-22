@@ -18,23 +18,28 @@ public class Model {
 /*(2) classe model creata per gestire elenco oggetti
  * e grafo i cui vertici siano gli oggetti, completo tutta la classe*/
 	
-	private List<ArtObject> artObjects;
-	private Graph<ArtObject, DefaultWeightedEdge> graph; //grafo non orientato ma pesato
+	private List<ArtObject> oggetti;
+	private ArtObjectIdMap map;
+	private SimpleWeightedGraph<ArtObject, DefaultWeightedEdge> graph; //grafo non orientato ma pesato
+	private ArtsmiaDAO dao;
 	
     //lista con la soluzione
-	List<ArtObject> best = null;
+	private List<ArtObject> best = null;
+	
+	public Model() {
+		dao = new ArtsmiaDAO();
+		map = new ArtObjectIdMap();
+		oggetti = dao.listObjects(map);
+		
+		//stampa default
+		System.out.format("Oggetti caricati: %d oggetti\n", this.oggetti.size());
+	
+	}
+	
+	
 	
 	//popola lista artobject(leggendo da DB) e crea grafo
 	public void creaGrafo() {
-		//--leggi lista oggetti dal DB
-		
-		/*uso metodo implementato nel dao per interagire col DB
-		 * ed ottenere la lista di oggetti che poi vado qui a salvare dentro la lista,
-		 * in particolare creo oggetto dao e su questo chiamo metodo, che 
-		 * mi memorizza nella lista gli oggetti buttando via la lista precedente */
-		ArtsmiaDAO dao= new ArtsmiaDAO();
-		this.artObjects= dao.listObjects();
-		System.out.format("Oggetti caricati: %d oggetti\n", this.artObjects.size());
 		
 		//--crea grafo
 		
@@ -44,14 +49,8 @@ public class Model {
 		this.graph= new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
 		
 		
-		/*--aggiungi vertici(tutti gli oggetti della lista artobject)
-		
-		for(ArtObject ao: this.artObjects) {
-			this.graph.addVertex(ao); //ora artObjects fa parte di un set, devo aver definito hashcode
-		}*/
-		
-		//oppure uso scorciatoia della libreria, passo grafo e collections di vertici
-		Graphs.addAllVertices(this.graph, this.artObjects);
+		//--aggiungi vertici(tutti gli oggetti della lista artobject)
+		Graphs.addAllVertices(this.graph, this.oggetti);
 		
 		//--aggiungi archi(tra chi e chi) e con il loro peso
 		
@@ -85,10 +84,10 @@ public class Model {
 				}
 			}
 			
-		}*/
+		}
 		
 		 // VERSIONE 2 MOLTO EFFICENTE
-		for(ArtObject ao: this.artObjects) {
+		for(ArtObject ao: this.oggetti) {
 			//dati gli oggetti, tramite dao faccio query che mi da elenco di risultati
 			List<ArtObjectsAndCount> connessi = dao.listArtObjectsAndCount(ao);
 				
@@ -101,6 +100,25 @@ public class Model {
 				System.out.format("(%d, %d) peso %d\n", ao.getId(), destinazione.getId(), c.getCount());//stampa di verifica
 			}
 		}
+		*/
+		
+		
+		
+		// arco = collega due oggetti esposti contemporaneamente alla stessa exhibition
+		// peso = numero di exhibition in cui vengono esposti insieme
+		List<Arco> archi = dao.getEdges(map);
+		if(archi != null) {
+			for(Arco a : archi) {
+				dao.contaExhibitionComuni(a); //conta le volte che sono stati esposti insieme i due vertici e ne setta il peso dell'arco
+				Graphs.addEdgeWithVertices(this.graph, a.getO1(), a.getO2(), a.getPeso());
+			}
+			
+			System.out.println("Vertici: "+this.graph.vertexSet().size());
+			System.out.println("Archi: "+this.graph.edgeSet().size());
+		} else {
+			System.out.println("ops");
+		}
+		
 		
 		
 		// Aggiungi gli archi (con il loro peso)
@@ -121,7 +139,7 @@ public class Model {
 	}	
 	  -------------------------------
 	  
-	 * VERSIONE 3 - la pi� efficiente di tutte ** esegue una query unica
+	 * VERSIONE 4 - la pi� efficiente di tutte ** esegue una query unica
 	 * (complessa, ma una sola) con la quale ottiene in un sol colpo tutti gli archi
 	 * del grafo
 	 * 
@@ -151,11 +169,11 @@ public class Model {
 		
 		//se funzione è chiamata prima di creagrafo non fa nulla
 		//perchè lista ancora vuota
-		if (this.artObjects == null)
+		if (this.oggetti == null)
 			return false;
 
 		//scandisco lista per verificare se ci sia id passato
-		for (ArtObject ao : this.artObjects) {
+		for (ArtObject ao : this.oggetti) {
 			if (ao.getId() == idObj)
 				return true;
 		}
@@ -166,13 +184,15 @@ public class Model {
 	public int calcolaDimensioneCC(int idObj) {
 
 		// trova il vertice di partenza di cui ho l'id passato
-		ArtObject start = trovaVertice(idObj);
+		ArtObject start = map.get(idObj); //in alternativa trovaVertice(idObj);
 
 		// visita il grafo, creo iteratore che restituisce i vertiti che visita
 		//e li raccolgo in una collection (scelgo set)
 		Set<ArtObject> visitati = new HashSet<>();
+		
 		DepthFirstIterator<ArtObject, DefaultWeightedEdge> dfv = new DepthFirstIterator<>(this.graph, start);
 		//iteratore che uso per iterare grafo partendo da start chiamando next
+		
 		while (dfv.hasNext()) //finche cè un elemento successivo per l'iteratore
 			visitati.add(dfv.next()); //aggiungo il prox elemento, se diventa falso esco
 
@@ -180,8 +200,10 @@ public class Model {
 		return visitati.size();
 	}
 
+	
+	
 	public List<ArtObject> getArtObjects() {
-		return artObjects;
+		return oggetti;
 	}
 
 	// SOLUZIONE PUNTO 2
@@ -189,8 +211,10 @@ public class Model {
 	//funzione chiamata dal test model che invoca la ricorsiva
 	public List<ArtObject> camminoMassimo(int startId, int LUN) { //passo start e valore max
 		
-		// trova il vertice di partenza
-		ArtObject start = trovaVertice(startId);
+		// trova il vertice di partenza, sfrutto la mappa creata prima
+		ArtObject start = map.get(startId);
+		if (start == null) //nel caso non lo trovi ho eccezzione
+			throw new IllegalArgumentException("Vertice " + startId + " non esistente");
 
 		//iniziaizzo le variabili della ricorsiva: lista col primo vertice
 		List<ArtObject> parziale = new ArrayList<>();
@@ -207,11 +231,13 @@ public class Model {
 
 	}
 
+	/*
+	alternativa alla mappa per trovare il vertice di partenza
 	private ArtObject trovaVertice(int idObj) {
 		// trova il vertice di partenza
 		//vad a cercare l artobject che appartiene all'elenco e che ha quell id
 		ArtObject start = null;
-		for (ArtObject ao : this.artObjects) {
+		for (ArtObject ao : this.oggetti) {
 			if (ao.getId() == idObj) {
 				start = ao;
 				break;
@@ -221,7 +247,7 @@ public class Model {
 			throw new IllegalArgumentException("Vertice " + idObj + " non esistente");
 		
 		return start;
-	}
+	}*/
 	
 	private void cerca(List<ArtObject> parziale, int livello, int LUN) {
 		
