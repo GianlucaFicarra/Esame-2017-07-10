@@ -198,6 +198,7 @@ public class ArtsmiaDAO {//dao usato dal model per eseguire le operazioni volute
 
 	
 	
+	
 	/*NOTA</b>: il database fornito insieme al progetto aveva dei dati errati, in
 	 * particolare esistevano delle righe (circa 20) in exhibition_objects per cui
 	 * il campo object_id non aveva corrispondenza nella tabella objects. Vedi:
